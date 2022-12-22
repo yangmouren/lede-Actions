@@ -5,7 +5,7 @@
 #
 # Copyright (C) 2020 KFERMercer
 #
-name: OpenWrt-CI
+name: OpenWrt-创建
 
 on:
   schedule:
@@ -23,7 +23,7 @@ jobs:
     permissions:
       contents: write # for release creation
 
-    name: Build OpenWrt firmware
+    name: 创建 OpenWrt 固件
 
     runs-on: ubuntu-latest
 
@@ -31,12 +31,12 @@ jobs:
 
     steps:
 
-      - name: Checkout
+      - name: Checkout 检查
         uses: actions/checkout@v2
         with:
           ref: master
 
-      - name: Space cleanup
+      - name: Space cleanup 清理空间
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
@@ -50,21 +50,21 @@ jobs:
 
           df -h
 
-      - name: Update feeds
+      - name: Update feeds 升级源
         run: |
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Generate configuration file
+      - name: Generate configuration file 生成设置文件
         run: make defconfig
 
-      - name: Make download
+      - name: Make download 创建下载
         run: |
           make download -j8
           find dl -size -1024c -exec rm -f {} \;
 
-      - name: Compile firmware
+      - name: Compile firmware 完成固件
         run: |
           make -j$(nproc) || make -j1 V=s
           echo "======================="
@@ -76,7 +76,7 @@ jobs:
           du -h --max-depth=1 ./build_dir
           du -h --max-depth=1 ./bin
 
-      - name: Prepare artifact
+      - name: Prepare artifact 准备成品
         run: |
           mkdir -p ./artifact/firmware
           mkdir -p ./artifact/package
@@ -86,26 +86,26 @@ jobs:
           cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
           cp -rf $(find ./bin/targets/ -type f -name "*.buildinfo" -o -name "*.manifest") ./artifact/buildinfo/
 
-      - name: Deliver buildinfo
+      - name: Deliver buildinfo 传递创建信息
         uses: actions/upload-artifact@v2
         with:
           name: OpenWrt_buildinfo
           path: ./artifact/buildinfo/
 
-      - name: Deliver package
+      - name: Deliver package 传递包
         uses: actions/upload-artifact@v2
         with:
           name: OpenWrt_package
           path: ./artifact/package/
 
-      - name: Deliver firmware
+      - name: Deliver firmware 传递固件
         uses: actions/upload-artifact@v2
         with:
           name: OpenWrt_firmware
           path: ./bin/targets/
   
 
-      - name: Upload release asset
+      - name: Upload release asset 上传释放资源
         if: github.event == 'release'
         uses: svenstaro/upload-release-action@v2
         with:
